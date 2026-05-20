@@ -48,6 +48,8 @@ warnings.filterwarnings("ignore")
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 ROOT_DIR     = Path(__file__).parent.parent
+import sys
+sys.path.insert(0, str(ROOT_DIR))
 DATA_DIR     = ROOT_DIR / "data"
 ARTIFACT_DIR = Path(__file__).parent / "artifacts"
 PLOTS_DIR    = Path(__file__).parent / "plots"

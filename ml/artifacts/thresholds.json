@@ -1,0 +1,6 @@
+{
+  "isolation_forest": 0.96,
+  "lof": 0.66,
+  "tabnet": 0.2,
+  "ensemble": 0.58
+}

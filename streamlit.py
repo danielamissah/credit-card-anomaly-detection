@@ -228,7 +228,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    page = st.radio("", ["Live Detector", "Model Overview", "Evaluation Plots", "Dataset Explorer"],
+    page = st.radio("Navigation", ["Live Detector", "Model Overview", "Evaluation Plots", "Dataset Explorer"],
                     label_visibility="collapsed")
 
     st.markdown("---")

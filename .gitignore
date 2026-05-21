@@ -7,8 +7,6 @@ venv/
 .coverage
 coverage.xml
 .pytest_cache/
-ml/artifacts/*.pkl
-ml/artifacts/*.json
 data/transactions.csv
 data/train.csv
 data/test.csv

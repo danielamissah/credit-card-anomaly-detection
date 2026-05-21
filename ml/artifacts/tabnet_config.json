@@ -1,0 +1,16 @@
+{
+  "input_dim": 10,
+  "hidden_dims": [
+    64,
+    32,
+    16
+  ],
+  "n_steps": 3,
+  "dropout": 0.1,
+  "batch_size": 512,
+  "lr": 0.001,
+  "patience": 20,
+  "min_delta": 1e-05,
+  "val_frac": 0.15,
+  "weight_decay": 1e-05
+}

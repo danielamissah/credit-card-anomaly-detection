@@ -1,0 +1,12 @@
+[
+  "log_amount",
+  "amount_to_avg_ratio",
+  "amount_to_limit_ratio",
+  "is_foreign",
+  "hour",
+  "hour_bin",
+  "is_weekend",
+  "is_card_present",
+  "mcc_risk_score",
+  "day_of_week"
+]

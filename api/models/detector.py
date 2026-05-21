@@ -245,7 +245,7 @@ class AnomalyDetector:
             return AnomalyType.unknown
         return AnomalyType.normal
 
-    def _explain(self, txn, is_anom, score, rules, anom_type) -> str:
+    def _explain(self, txn, is_anom, score, rules, anom_type, feature_attributions="") -> str:
         if not is_anom:
             return f"Transaction appears normal. Ensemble score: {score:.2f}."
         parts = [f"Anomaly detected (score: {score:.2f})."]
@@ -261,6 +261,10 @@ class AnomalyDetector:
             parts.append(f"Amount is {txn.amount/(txn.avg_user_spend+1e-6):.0f}x user avg.")
         elif anom_type == AnomalyType.odd_hour:
             parts.append(f"Unusual time: {txn.hour:02d}:xx.")
+            
+        if feature_attributions:
+            parts.append(f"The AI flagged this because {feature_attributions}.")
+            
         return " ".join(parts)
 
     # ── Main predict ──────────────────────────────────────────────────────────
@@ -288,6 +292,34 @@ class AnomalyDetector:
         confidence = "high" if final_score >= 0.75 else "medium" if final_score >= 0.50 else "low"
         total_ms   = (time.perf_counter() - t0) * 1000
 
+        # Model Explainability: Extract highly deviant features from the standard scaler
+        feature_explanations = {
+            0: "the transaction amount is significantly larger than typical transactions",
+            1: "the amount is unusually high compared to typical spending",
+            2: "the transaction utilizes an unusually large portion of the credit limit",
+            3: "the transaction occurred in a country different from the home country",
+            4: "the transaction occurred at an unusual hour",
+            5: "the transaction occurred at an unusual time of day",
+            6: "the transaction occurred on a weekend, which is unusual",
+            7: "the physical presence of the card is unusual for this type of transaction",
+            8: "the merchant category has a high risk profile",
+            9: "the transaction occurred on an unusual day of the week"
+        }
+        
+        deviations = []
+        if is_anomaly:
+            for i, val in enumerate(X_scaled[0]):
+                if abs(val) > 2.5:  # Highly deviant feature (2.5 std devs from mean)
+                    deviations.append(feature_explanations[i])
+                    
+        # Join with commas and "and" for the last item
+        if len(deviations) > 1:
+            feature_attributions = ", ".join(deviations[:-1]) + ", and " + deviations[-1]
+        elif deviations:
+            feature_attributions = deviations[0]
+        else:
+            feature_attributions = ""
+
         return AnomalyResponse(
             transaction_id  = txn.transaction_id,
             is_anomaly      = is_anomaly,
@@ -301,7 +333,7 @@ class AnomalyDetector:
                 ensemble         = round(ens,   4),
             ),
             rules_triggered = rules,
-            explanation     = self._explain(txn, is_anomaly, final_score, rules, anom_type),
+            explanation     = self._explain(txn, is_anomaly, final_score, rules, anom_type, feature_attributions),
             processing_ms   = round(total_ms, 2),
         )
 

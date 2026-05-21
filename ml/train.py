@@ -525,7 +525,11 @@ def run_cross_validation(full_df: pd.DataFrame) -> dict:
         # ── LOF ────────────────────────────────────────────────────────────────
         print(f"  [LOF] Training ...")
         lof_model = LocalOutlierFactor(**LOF_PARAMS)
-        lof_model.fit(X_norm_sc)
+        if len(X_norm_sc) > 100_000:
+            idx = np.random.choice(len(X_norm_sc), 100_000, replace=False)
+            lof_model.fit(X_norm_sc[idx])
+        else:
+            lof_model.fit(X_norm_sc)
         lof_scores = normalise_lof(lof_model.score_samples(X_val_sc))
 
         # ── TabNet ─────────────────────────────────────────────────────────────
@@ -611,7 +615,11 @@ def train_final_models(full_df: pd.DataFrame) -> tuple:
 
     print("  [LOF] Fitting final Local Outlier Factor ...")
     lof_model  = LocalOutlierFactor(**LOF_PARAMS)
-    lof_model.fit(X_scaled)
+    if len(X_scaled) > 100_000:
+        idx = np.random.choice(len(X_scaled), 100_000, replace=False)
+        lof_model.fit(X_scaled[idx])
+    else:
+        lof_model.fit(X_scaled)
 
     print("\n  [TabNet] Training final autoencoder until convergence ...")
     tabnet_model = train_tabnet(X_scaled, TABNET_CONFIG, fold_idx=99, verbose=True)

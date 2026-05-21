@@ -6,8 +6,8 @@ import os
 
 RANDOM_SEED = 42
 N_USERS     = 500
-N_NORMAL    = 50_000
-N_ANOMALIES = 2_500
+N_NORMAL    = 1_000_000
+N_ANOMALIES = 50_000
 OUTPUT_DIR  = os.path.dirname(os.path.abspath(__file__))
 
 np.random.seed(RANDOM_SEED)

@@ -68,4 +68,4 @@ async def simulate_traffic(num_requests=2500, concurrency=50):
     print(f"Throughput: {completed/elapsed:.1f} req/s")
 
 if __name__ == "__main__":
-    asyncio.run(simulate_traffic(num_requests=2500, concurrency=50))
+    asyncio.run(simulate_traffic(num_requests=100000, concurrency=100))

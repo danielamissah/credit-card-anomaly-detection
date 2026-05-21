@@ -1,10 +1,5 @@
 """
 streamlit_demo.py
-──────────────────
-Interactive public demo for the Credit Card Anomaly Detection system.
-
-This is the file you deploy to Streamlit Community Cloud or Hugging Face Spaces
-so anyone can interact with the model without running Docker locally.
 
 Pages:
   1. Live Detector   — submit a transaction and see the anomaly score live
@@ -15,21 +10,12 @@ Pages:
 Run locally:
   streamlit run streamlit_demo.py
 
-Deploy to Streamlit Cloud:
-  1. Push this repo to GitHub
-  2. Go to https://share.streamlit.io
-  3. Connect repo, set main file to streamlit_demo.py
-  4. Deploy — public URL in ~2 minutes
-
-Deploy to Hugging Face Spaces:
-  1. Create a Space at https://huggingface.co/spaces
-  2. Set SDK to Streamlit
-  3. Push this repo — it auto-deploys
 """
 
 import json
 import math
 import pickle
+import pycountry
 import sys
 from pathlib import Path
 
@@ -39,38 +25,52 @@ import plotly.graph_objects as go
 import plotly.express as px
 import streamlit as st
 
-# ── Page config — must be first Streamlit call ────────────────────────────────
+# ── Page config — must be first Streamlit call 
 st.set_page_config(
     page_title = "Credit Card Anomaly Detection",
-    page_icon  = "💳",
+    page_icon  = "",
     layout     = "wide",
     initial_sidebar_state = "expanded",
 )
 
-# ── Paths ──────────────────────────────────────────────────────────────────────
+# ── Paths 
 ROOT_DIR     = Path(__file__).parent
 ARTIFACT_DIR = ROOT_DIR / "ml" / "artifacts"
 PLOTS_DIR    = ROOT_DIR / "ml" / "plots"
 DATA_DIR     = ROOT_DIR / "data"
 
-# ── Custom CSS — dark theme matching the project aesthetic ────────────────────
+# Theme Configuration
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
 
 :root {
-    --bg:      #0d1117;
-    --card:    #161b22;
-    --border:  #30363d;
-    --accent:  #f0b429;
-    --text:    #e6edf3;
-    --muted:   #8b949e;
+    --accent:  #ff9800;
     --green:   #3fb950;
     --red:     #f85149;
-    --blue:    #58a6ff;
 }
 
-.stApp { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg:      #001f1c;
+        --card:    #00332e;
+        --border:  #004d40;
+        --text:    #e0f2f1;
+        --muted:   #80cbc4;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg:      #e0f2f1;
+        --card:    #ffffff;
+        --border:  #b2dfdb;
+        --text:    #00332e;
+        --muted:   #00695c;
+    }
+}
+
+.stApp { background: var(--bg); font-family: 'Open Sans', sans-serif; color: var(--text); }
 .metric-card {
     background: var(--card); border: 1px solid var(--border);
     border-radius: 8px; padding: 1.2rem 1.5rem; text-align: center;
@@ -84,8 +84,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
-# ── Load models (cached so they only load once per session) ───────────────────
+# Initialize models
 
 @st.cache_resource
 def load_models():
@@ -173,17 +172,53 @@ def score_transaction(txn_features: dict, if_model, lof_model, tabnet_model, sca
     ensemble = 0.35 * if_score + 0.35 * lof_score + 0.30 * tab_score
     threshold = thresholds.get("ensemble", 0.5)
 
+    # Model Explainability
+    feature_explanations = {
+        0: "the transaction amount is significantly larger than typical transactions",
+        1: "the amount is unusually high compared to typical spending",
+        2: "the transaction utilizes an unusually large portion of the credit limit",
+        3: "the transaction occurred in a country different from the home country",
+        4: "the transaction occurred at an unusual hour",
+        5: "the transaction occurred at an unusual time of day",
+        6: "the transaction occurred on a weekend, which is unusual",
+        7: "the physical presence of the card is unusual for this type of transaction",
+        8: "the merchant category has a high risk profile",
+        9: "the transaction occurred on an unusual day of the week"
+    }
+    
+    is_anomaly = ensemble >= threshold
+    deviations = []
+    if is_anomaly:
+        for i, val in enumerate(X_scaled[0]):
+            if abs(val) > 2.5:
+                deviations.append(feature_explanations[i])
+                
+        if len(deviations) > 1:
+            feature_attributions = ", ".join(deviations[:-1]) + ", and " + deviations[-1]
+        elif deviations:
+            feature_attributions = deviations[0]
+        else:
+            feature_attributions = ""
+            
+        if feature_attributions:
+            explanation = f"The AI flagged this because {feature_attributions}."
+        else:
+            explanation = "The AI flagged this because of a complex combination of features that collectively deviate from your typical spending patterns."
+    else:
+        explanation = "The AI evaluated this transaction and found all patterns to be within normal behavior."
+
     return {
         "isolation_forest": round(if_score, 4),
         "lof":              round(lof_score, 4),
         "tabnet":           round(tab_score, 4),
         "ensemble":         round(ensemble, 4),
-        "is_anomaly":       ensemble >= threshold,
+        "is_anomaly":       is_anomaly,
         "threshold":        threshold,
+        "explanation":      explanation
     }
 
 
-# ── Sidebar navigation ────────────────────────────────────────────────────────
+# ── Sidebar navigation 
 
 with st.sidebar:
     st.markdown("""
@@ -193,7 +228,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    page = st.radio("", ["🔍 Live Detector", "📊 Model Overview", "📈 Evaluation Plots", "🗂 Dataset Explorer"],
+    page = st.radio("", ["Live Detector", "Model Overview", "Evaluation Plots", "Dataset Explorer"],
                     label_visibility="collapsed")
 
     st.markdown("---")
@@ -208,18 +243,18 @@ with st.sidebar:
     CV<br>
     <span style='color:#8b949e;'>5-fold stratified</span><br><br>
     SOURCE<br>
-    <span style='color:#58a6ff;'><a href='https://github.com/YOUR_USERNAME/credit-card-anomaly-detection' style='color:#58a6ff;'>GitHub ↗</a></span>
+    <span style='color:#58a6ff;'><a href='https://github.com/danielamissah/credit-card-anomaly-detection' style='color:#58a6ff;'>GitHub ↗</a></span>
     </div>
     """, unsafe_allow_html=True)
 
-# ── Load models ────────────────────────────────────────────────────────────────
+# ── Load models 
 if_model, lof_model, tabnet_model, scaler, thresholds, evaluation, cv_summary, models_loaded = load_models()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Page 1: Live Detector
 # ══════════════════════════════════════════════════════════════════════════════
 
-if page == "🔍 Live Detector":
+if page == "Live Detector":
     st.markdown("<h1 style='font-family:DM Serif Display,serif;font-size:2rem;'>Live Transaction Detector</h1>", unsafe_allow_html=True)
     st.markdown("Submit a credit card transaction and see the anomaly score from all three models in real time.")
 
@@ -227,7 +262,7 @@ if page == "🔍 Live Detector":
         st.error("Models not loaded. Run `python ml/train.py` first, then restart the app.")
         st.stop()
 
-    # ── Input form ─────────────────────────────────────────────────────────────
+    # ── Input form 
     st.markdown("### Transaction Details")
 
     col1, col2, col3 = st.columns(3)
@@ -238,8 +273,13 @@ if page == "🔍 Live Detector":
         credit_limit  = st.number_input("Credit Limit (EUR)", min_value=100.0, max_value=100000.0, value=5000.0, step=100.0)
 
     with col2:
-        country       = st.selectbox("Transaction Country", ["DE","CN","NG","RU","US","FR","GB","BR","AT","CH","VN"], index=1)
-        home_country  = st.selectbox("Home Country", ["DE","AT","CH","FR","GB","US","NL"], index=0)
+        ALL_COUNTRIES = {country.alpha_2: country.name for country in pycountry.countries}
+        # Sort countries alphabetically by name, but put some common ones at the top for convenience
+        popular = ["DE", "US", "GB", "FR", "CN", "BR", "NG"]
+        sorted_codes = popular + [c for c in sorted(ALL_COUNTRIES.keys(), key=lambda x: ALL_COUNTRIES[x]) if c not in popular]
+        
+        country       = st.selectbox("Transaction Country", sorted_codes, index=0, format_func=lambda x: ALL_COUNTRIES.get(x, x))
+        home_country  = st.selectbox("Home Country", sorted_codes, index=0, format_func=lambda x: ALL_COUNTRIES.get(x, x))
         mcc           = st.selectbox("Merchant Category (MCC)",
                                       [5411, 5812, 5541, 5999, 4722, 7922, 6011, 5912, 5734, 5944],
                                       format_func=lambda x: {
@@ -255,7 +295,7 @@ if page == "🔍 Live Detector":
         card_present  = st.radio("Card Present?", ["No (Online/CNP)", "Yes (Physical)"], index=0)
         is_card_present = 0 if "No" in card_present else 1
 
-    if st.button("🔍 Analyse Transaction", type="primary", use_container_width=True):
+    if st.button("Analyse Transaction", type="primary", use_container_width=True):
         txn = {
             "amount": amount, "avg_user_spend": avg_spend, "credit_limit": credit_limit,
             "country": country, "home_country": home_country, "mcc": mcc,
@@ -266,8 +306,8 @@ if page == "🔍 Live Detector":
         st.markdown("---")
         st.markdown("### Result")
 
-        badge = "<span class='anomaly-badge'>🚨 ANOMALY DETECTED</span>" if result["is_anomaly"] \
-                else "<span class='normal-badge'>✅ NORMAL</span>"
+        badge = "<span class='anomaly-badge'>ANOMALY DETECTED</span>" if result["is_anomaly"] \
+                else "<span class='normal-badge'>NORMAL</span>"
         st.markdown(badge, unsafe_allow_html=True)
 
         # Score cards
@@ -276,7 +316,7 @@ if page == "🔍 Live Detector":
             (c1, "Isolation Forest", result["isolation_forest"], "#58a6ff"),
             (c2, "LOF",              result["lof"],              "#3fb950"),
             (c3, "TabNet",          result["tabnet"],            "#d2a8ff"),
-            (c4, "Ensemble",        result["ensemble"],          "#f0b429"),
+            (c4, "Ensemble",        result["ensemble"],          "#ff9800"),
         ]:
             col.markdown(f"""
             <div class='metric-card' style='border-color:{colour}40;'>
@@ -284,6 +324,12 @@ if page == "🔍 Live Detector":
                 <div class='metric-value' style='color:{colour};'>{score:.3f}</div>
             </div>
             """, unsafe_allow_html=True)
+            
+        if result["explanation"]:
+            if result["is_anomaly"]:
+                st.warning(f"**AI Explanation:** {result['explanation']}")
+            else:
+                st.success(f"**AI Explanation:** {result['explanation']}")
 
         # Gauge chart
         fig = go.Figure(go.Indicator(
@@ -319,7 +365,7 @@ if page == "🔍 Live Detector":
 # Page 2: Model Overview
 # ══════════════════════════════════════════════════════════════════════════════
 
-elif page == "📊 Model Overview":
+elif page == "Model Overview":
     st.markdown("<h1 style='font-family:DM Serif Display,serif;font-size:2rem;'>Model Overview</h1>", unsafe_allow_html=True)
 
     # Architecture summary
@@ -387,7 +433,7 @@ elif page == "📊 Model Overview":
 # Page 3: Evaluation Plots
 # ══════════════════════════════════════════════════════════════════════════════
 
-elif page == "📈 Evaluation Plots":
+elif page == "Evaluation Plots":
     st.markdown("<h1 style='font-family:DM Serif Display,serif;font-size:2rem;'>Evaluation Plots</h1>", unsafe_allow_html=True)
 
     plot_files = {
@@ -416,7 +462,7 @@ elif page == "📈 Evaluation Plots":
 # Page 4: Dataset Explorer
 # ══════════════════════════════════════════════════════════════════════════════
 
-elif page == "🗂 Dataset Explorer":
+elif page == "Dataset Explorer":
     st.markdown("<h1 style='font-family:DM Serif Display,serif;font-size:2rem;'>Dataset Explorer</h1>", unsafe_allow_html=True)
 
     csv_path = DATA_DIR / "transactions.csv"

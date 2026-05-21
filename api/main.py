@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from api.models.detector import detector
@@ -37,6 +38,14 @@ app = FastAPI(
     description = "Real-time anomaly detection using Isolation Forest + LOF ensemble with fraud rule engine.",
     version     = APP_VERSION,
     lifespan    = lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 Instrumentator().instrument(app).expose(app, endpoint="/metrics")

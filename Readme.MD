@@ -12,7 +12,7 @@
 [![Prometheus](https://img.shields.io/badge/Prometheus-monitored-E6522C?logo=prometheus)](https://prometheus.io/)
 [![Grafana](https://img.shields.io/badge/Grafana-dashboard-F46800?logo=grafana)](https://grafana.com/)
 
-**[Streamlit Demo →](https://your_username-ccad.streamlit.app/)** · **[API Docs →](https://ccad-api.onrender.com/docs)**
+**[Streamlit Demo](https://dka-credit-card-anomaly-detection.streamlit.app/)**
 
 </div>
 

@@ -39,7 +39,7 @@ st.set_page_config(
 # ── Paths 
 ROOT_DIR     = Path(__file__).parent
 ARTIFACT_DIR = ROOT_DIR / "ml" / "artifacts"
-PLOTS_DIR    = ROOT_DIR / "ml" / "plots"
+PLOTS_DIR    = ROOT_DIR / "assets"
 DATA_DIR     = ROOT_DIR / "data"
 
 # Theme Configuration
@@ -471,12 +471,16 @@ elif page == "Dataset Explorer":
     st.markdown("<h1 style='font-family:DM Serif Display,serif;font-size:2rem;'>Dataset Explorer</h1>", unsafe_allow_html=True)
 
     csv_path = DATA_DIR / "transactions.csv"
-    if not csv_path.exists():
+    sample_path = DATA_DIR / "sample_transactions.csv"
+    
+    if csv_path.exists():
+        df = pd.read_csv(csv_path)
+    elif sample_path.exists():
+        df = pd.read_csv(sample_path)
+        st.info("Using a 10,000 row sample dataset for demonstration purposes because the full 1M row dataset is too large to host on GitHub.")
+    else:
         st.warning("Dataset not found. Run `python data/generate.py` first.")
         st.stop()
-
-    df = pd.read_csv(csv_path)
-
     # Summary stats
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Total Transactions", f"{len(df):,}")

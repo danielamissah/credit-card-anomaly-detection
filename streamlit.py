@@ -334,6 +334,8 @@ if page == "Live Detector":
             else:
                 st.success(f"**AI Explanation:** {result['explanation']}")
 
+        st.markdown("<br><br>", unsafe_allow_html=True)
+
         # Gauge chart
         fig = go.Figure(go.Indicator(
             mode  = "gauge+number",

@@ -271,11 +271,6 @@ if page == "Live Detector":
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        amount        = st.number_input("Amount (EUR)", min_value=0.01, max_value=50000.0, value=1250.0, step=10.0)
-        avg_spend     = st.number_input("User Avg Spend (EUR)", min_value=1.0, max_value=10000.0, value=45.0)
-        credit_limit  = st.number_input("Credit Limit (EUR)", min_value=100.0, max_value=100000.0, value=5000.0, step=100.0)
-
-    with col2:
         ALL_COUNTRIES = {country.alpha_2: country.name for country in pycountry.countries}
         # Sort countries alphabetically by name, but put some common ones at the top for convenience
         popular = ["DE", "US", "GB", "FR", "CN", "BR", "NG"]
@@ -291,6 +286,13 @@ if page == "Live Detector":
                                           6011:"ATM Withdrawal",5912:"Pharmacy",5734:"Electronics",5944:"Luxury/Jewellery"
                                       }.get(x, str(x)), index=9)
 
+        CURRENCY_MAP = {"AW": "Aruban Florin", "AF": "Afghan Afghani", "AO": "Angolan Kwanza", "AI": "East Caribbean Dollar", "AX": "Euro", "AL": "Albanian Lek", "AD": "Euro", "AE": "United Arab Emirates Dirham", "AR": "Argentine Peso", "AM": "Armenian Dram", "AS": "US Dollar", "TF": "Euro", "AG": "East Caribbean Dollar", "AU": "Australian Dollar", "AT": "Euro", "AZ": "Azerbaijani Manat", "BI": "Burundian Franc", "BE": "Euro", "BJ": "West African CFA Franc", "BQ": "US Dollar", "BF": "West African CFA Franc", "BD": "Bangladeshi Taka", "BG": "Bulgarian Lev", "BH": "Bahraini Dinar", "BS": "Bahamian Dollar", "BA": "Bosnia-Herzegovina Convertible Mark", "BL": "Euro", "BY": "Belarusian Ruble", "BZ": "Belize Dollar", "BM": "Bermudan Dollar", "BO": "Bolivian Boliviano", "BR": "Brazilian Real", "BB": "Barbadian Dollar", "BN": "Brunei Dollar", "BT": "Indian Rupee", "BV": "Norwegian Krone", "BW": "Botswanan Pula", "CF": "Central African CFA Franc", "CA": "Canadian Dollar", "CC": "Australian Dollar", "CH": "Swiss Franc", "CL": "Chilean Peso", "CN": "Chinese Yuan", "CI": "West African CFA Franc", "CM": "Central African CFA Franc", "CD": "Congolese Franc", "CG": "Central African CFA Franc", "CK": "New Zealand Dollar", "CO": "Colombian Peso", "KM": "Comorian Franc", "CV": "Cape Verdean Escudo", "CR": "Costa Rican Colón", "CU": "Cuban Peso", "CW": "Caribbean guilder", "CX": "Australian Dollar", "KY": "Cayman Islands Dollar", "CY": "Euro", "CZ": "Czech Koruna", "DE": "Euro", "DJ": "Djiboutian Franc", "DM": "East Caribbean Dollar", "DK": "Danish Krone", "DO": "Dominican Peso", "DZ": "Algerian Dinar", "EC": "US Dollar", "EG": "Egyptian Pound", "ER": "Eritrean Nakfa", "EH": "Moroccan Dirham", "ES": "Euro", "EE": "Euro", "ET": "Ethiopian Birr", "FI": "Euro", "FJ": "Fijian Dollar", "FK": "Falkland Islands Pound", "FR": "Euro", "FO": "Danish Krone", "FM": "US Dollar", "GA": "Central African CFA Franc", "GB": "British Pound", "GE": "Georgian Lari", "GG": "British Pound", "GH": "Ghanaian Cedi", "GI": "Gibraltar Pound", "GN": "Guinean Franc", "GP": "Euro", "GM": "Gambian Dalasi", "GW": "West African CFA Franc", "GQ": "Central African CFA Franc", "GR": "Euro", "GD": "East Caribbean Dollar", "GL": "Danish Krone", "GT": "Guatemalan Quetzal", "GF": "Euro", "GU": "US Dollar", "GY": "Guyanaese Dollar", "HK": "Hong Kong Dollar", "HM": "Australian Dollar", "HN": "Honduran Lempira", "HR": "Euro", "HT": "Haitian Gourde", "HU": "Hungarian Forint", "ID": "Indonesian Rupiah", "IM": "British Pound", "IN": "Indian Rupee", "IO": "US Dollar", "IE": "Euro", "IR": "Iranian Rial", "IQ": "Iraqi Dinar", "IS": "Icelandic Króna", "IL": "Israeli New Shekel", "IT": "Euro", "JM": "Jamaican Dollar", "JE": "British Pound", "JO": "Jordanian Dinar", "JP": "Japanese Yen", "KZ": "Kazakhstani Tenge", "KE": "Kenyan Shilling", "KG": "Kyrgystani Som", "KH": "Cambodian Riel", "KI": "Australian Dollar", "KN": "East Caribbean Dollar", "KR": "South Korean Won", "KW": "Kuwaiti Dinar", "LA": "Laotian Kip", "LB": "Lebanese Pound", "LR": "Liberian Dollar", "LY": "Libyan Dinar", "LC": "East Caribbean Dollar", "LI": "Swiss Franc", "LK": "Sri Lankan Rupee", "LS": "South African Rand", "LT": "Euro", "LU": "Euro", "LV": "Euro", "MO": "Macanese Pataca", "MF": "Euro", "MA": "Moroccan Dirham", "MC": "Euro", "MD": "Moldovan Leu", "MG": "Malagasy Ariary", "MV": "Maldivian Rufiyaa", "MX": "Mexican Peso", "MH": "US Dollar", "MK": "Macedonian Denar", "ML": "West African CFA Franc", "MT": "Euro", "MM": "Myanmar Kyat", "ME": "Euro", "MN": "Mongolian Tugrik", "MP": "US Dollar", "MZ": "Mozambican Metical", "MR": "Mauritanian Ouguiya", "MS": "East Caribbean Dollar", "MQ": "Euro", "MU": "Mauritian Rupee", "MW": "Malawian Kwacha", "MY": "Malaysian Ringgit", "YT": "Euro", "NA": "South African Rand", "NC": "CFP Franc", "NE": "West African CFA Franc", "NF": "Australian Dollar", "NG": "Nigerian Naira", "NI": "Nicaraguan Córdoba", "NU": "New Zealand Dollar", "NL": "Euro", "NO": "Norwegian Krone", "NP": "Nepalese Rupee", "NR": "Australian Dollar", "NZ": "New Zealand Dollar", "OM": "Omani Rial", "PK": "Pakistani Rupee", "PA": "Panamanian Balboa", "PN": "New Zealand Dollar", "PE": "Peruvian Sol", "PH": "Philippine Peso", "PW": "US Dollar", "PG": "Papua New Guinean Kina", "PL": "Polish Zloty", "PR": "US Dollar", "KP": "North Korean Won", "PT": "Euro", "PY": "Paraguayan Guarani", "PS": "Israeli New Shekel", "PF": "CFP Franc", "QA": "Qatari Riyal", "RE": "Euro", "RO": "Romanian Leu", "RU": "Russian Ruble", "RW": "Rwandan Franc", "SA": "Saudi Riyal", "SD": "Sudanese Pound", "SN": "West African CFA Franc", "SG": "Singapore Dollar", "GS": "British Pound", "SH": "St. Helena Pound", "SJ": "Norwegian Krone", "SB": "Solomon Islands Dollar", "SL": "Sierra Leonean Leone", "SV": "US Dollar", "SM": "Euro", "SO": "Somali Shilling", "PM": "Euro", "RS": "Serbian Dinar", "SS": "South Sudanese Pound", "ST": "São Tomé & Príncipe Dobra", "SR": "Surinamese Dollar", "SK": "Euro", "SI": "Euro", "SE": "Swedish Krona", "SZ": "Swazi Lilangeni", "SX": "Caribbean guilder", "SC": "Seychellois Rupee", "SY": "Syrian Pound", "TC": "US Dollar", "TD": "Central African CFA Franc", "TG": "West African CFA Franc", "TH": "Thai Baht", "TJ": "Tajikistani Somoni", "TK": "New Zealand Dollar", "TM": "Turkmenistani Manat", "TL": "US Dollar", "TO": "Tongan Paʻanga", "TT": "Trinidad & Tobago Dollar", "TN": "Tunisian Dinar", "TR": "Turkish Lira", "TV": "Australian Dollar", "TW": "New Taiwan Dollar", "TZ": "Tanzanian Shilling", "UG": "Ugandan Shilling", "UA": "Ukrainian Hryvnia", "UM": "US Dollar", "UY": "Uruguayan Peso", "US": "US Dollar", "UZ": "Uzbekistani Som", "VA": "Euro", "VC": "East Caribbean Dollar", "VE": "Venezuelan Bolívar", "VG": "US Dollar", "VI": "US Dollar", "VN": "Vietnamese Dong", "VU": "Vanuatu Vatu", "WF": "CFP Franc", "WS": "Samoan Tala", "YE": "Yemeni Rial", "ZA": "South African Rand", "ZM": "Zambian Kwacha", "ZW": "US Dollar"}
+        currency = CURRENCY_MAP.get(home_country, "Local Currency")
+        
+        amount        = st.number_input(f"Amount ({currency})", min_value=0.01, max_value=50000.0, value=1250.0, step=10.0)
+        avg_spend     = st.number_input(f"User Avg Spend ({currency})", min_value=1.0, max_value=10000.0, value=45.0)
+        credit_limit  = st.number_input(f"Credit Limit ({currency})", min_value=100.0, max_value=100000.0, value=5000.0, step=100.0)
+
     with col3:
         hour          = st.slider("Hour of Day", 0, 23, 3)
         day_of_week   = st.selectbox("Day of Week", [0,1,2,3,4,5,6],
@@ -298,7 +300,7 @@ if page == "Live Detector":
         card_present  = st.radio("Card Present?", ["No (Online/CNP)", "Yes (Physical)"], index=0)
         is_card_present = 0 if "No" in card_present else 1
 
-    if st.button("Analyse Transaction", type="primary", width="stretch"):
+    if st.button("Analyse Transaction", type="primary", use_container_width=True):
         txn = {
             "amount": amount, "avg_user_spend": avg_spend, "credit_limit": credit_limit,
             "country": country, "home_country": home_country, "mcc": mcc,
@@ -363,7 +365,7 @@ if page == "Live Detector":
             font={"color": "#8b949e"},
             height=280, margin=dict(l=30, r=30, t=40, b=10),
         )
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -382,7 +384,7 @@ elif page == "Model Overview":
         "Training":    ["Unsupervised", "Unsupervised", "Autoencoder on normals", "—"],
         "Strength":    ["Global outliers", "Local density anomalies", "Feature interaction anomalies", "All of the above"],
     }
-    st.dataframe(pd.DataFrame(arch_data), width="stretch", hide_index=True)
+    st.dataframe(pd.DataFrame(arch_data), use_container_width=True, hide_index=True)
 
     if models_loaded and cv_summary:
         st.markdown("### Cross-Validation Results (5-fold)")
@@ -398,7 +400,7 @@ elif page == "Model Overview":
                 "AUC-ROC":   f"{metrics.get('auc_roc', 0):.4f}",
                 "Threshold": f"{metrics.get('threshold', 0):.2f}",
             })
-        st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
         # Per-fold F1 bar chart
         st.markdown("### F1 per Fold")
@@ -422,7 +424,7 @@ elif page == "Model Overview":
                 xaxis={"gridcolor":"#21262d"}, yaxis={"gridcolor":"#21262d"},
                 legend={"bgcolor":"#161b22"},
             )
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("### Anomaly Types Detected")
     types_df = pd.DataFrame([
@@ -431,7 +433,7 @@ elif page == "Model Overview":
         {"Type": "Geographic",  "Description": "Transaction from high-risk or unexpected country",         "Signal": "is_foreign, mcc_risk_score"},
         {"Type": "Odd Hour",    "Description": "Large transaction at 01:00–04:59 for a daytime user",     "Signal": "hour, hour_bin, log_amount"},
     ])
-    st.dataframe(types_df, width="stretch", hide_index=True)
+    st.dataframe(types_df, use_container_width=True, hide_index=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -459,7 +461,7 @@ elif page == "Evaluation Plots":
             if path.exists():
                 st.markdown(f"### {title}")
                 st.caption(description)
-                st.image(str(path), use_column_width=True)
+                st.image(str(path), use_container_width=True)
                 st.markdown("---")
 
 
@@ -499,7 +501,7 @@ elif page == "Dataset Explorer":
     fig.update_layout(paper_bgcolor="#0d1117", plot_bgcolor="#161b22",
                       font={"color":"#8b949e"}, height=300, showlegend=False,
                       xaxis={"gridcolor":"#21262d"}, yaxis={"gridcolor":"#21262d"})
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
     st.markdown("### Amount Distribution (log scale)")
     fig2 = go.Figure()
@@ -514,7 +516,7 @@ elif page == "Dataset Explorer":
         font={"color":"#8b949e"}, height=300, xaxis_title="log(1 + Amount)",
         xaxis={"gridcolor":"#21262d"}, yaxis={"gridcolor":"#21262d"},
     )
-    st.plotly_chart(fig2, width="stretch")
+    st.plotly_chart(fig2, use_container_width=True)
 
     st.markdown("### Sample Transactions")
     n_show = st.slider("Rows to show", 5, 50, 10)
@@ -527,5 +529,5 @@ elif page == "Dataset Explorer":
     st.dataframe(
         display_df[["transaction_id","amount","mcc","country","home_country",
                     "hour","is_card_present","is_anomaly","anomaly_type"]].head(n_show),
-        width="stretch", hide_index=True,
+        use_container_width=True, hide_index=True,
     )

@@ -23,7 +23,10 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+import warnings
 import streamlit as st
+
+warnings.filterwarnings("ignore", module="sklearn")
 
 # ── Page config — must be first Streamlit call 
 st.set_page_config(
@@ -295,7 +298,7 @@ if page == "Live Detector":
         card_present  = st.radio("Card Present?", ["No (Online/CNP)", "Yes (Physical)"], index=0)
         is_card_present = 0 if "No" in card_present else 1
 
-    if st.button("Analyse Transaction", type="primary", use_container_width=True):
+    if st.button("Analyse Transaction", type="primary", width="stretch"):
         txn = {
             "amount": amount, "avg_user_spend": avg_spend, "credit_limit": credit_limit,
             "country": country, "home_country": home_country, "mcc": mcc,
@@ -358,7 +361,7 @@ if page == "Live Detector":
             font={"color": "#8b949e"},
             height=280, margin=dict(l=30, r=30, t=40, b=10),
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -377,7 +380,7 @@ elif page == "Model Overview":
         "Training":    ["Unsupervised", "Unsupervised", "Autoencoder on normals", "—"],
         "Strength":    ["Global outliers", "Local density anomalies", "Feature interaction anomalies", "All of the above"],
     }
-    st.dataframe(pd.DataFrame(arch_data), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(arch_data), width="stretch", hide_index=True)
 
     if models_loaded and cv_summary:
         st.markdown("### Cross-Validation Results (5-fold)")
@@ -393,7 +396,7 @@ elif page == "Model Overview":
                 "AUC-ROC":   f"{metrics.get('auc_roc', 0):.4f}",
                 "Threshold": f"{metrics.get('threshold', 0):.2f}",
             })
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
 
         # Per-fold F1 bar chart
         st.markdown("### F1 per Fold")
@@ -417,7 +420,7 @@ elif page == "Model Overview":
                 xaxis={"gridcolor":"#21262d"}, yaxis={"gridcolor":"#21262d"},
                 legend={"bgcolor":"#161b22"},
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
     st.markdown("### Anomaly Types Detected")
     types_df = pd.DataFrame([
@@ -426,7 +429,7 @@ elif page == "Model Overview":
         {"Type": "Geographic",  "Description": "Transaction from high-risk or unexpected country",         "Signal": "is_foreign, mcc_risk_score"},
         {"Type": "Odd Hour",    "Description": "Large transaction at 01:00–04:59 for a daytime user",     "Signal": "hour, hour_bin, log_amount"},
     ])
-    st.dataframe(types_df, use_container_width=True, hide_index=True)
+    st.dataframe(types_df, width="stretch", hide_index=True)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -490,7 +493,7 @@ elif page == "Dataset Explorer":
     fig.update_layout(paper_bgcolor="#0d1117", plot_bgcolor="#161b22",
                       font={"color":"#8b949e"}, height=300, showlegend=False,
                       xaxis={"gridcolor":"#21262d"}, yaxis={"gridcolor":"#21262d"})
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     st.markdown("### Amount Distribution (log scale)")
     fig2 = go.Figure()
@@ -505,7 +508,7 @@ elif page == "Dataset Explorer":
         font={"color":"#8b949e"}, height=300, xaxis_title="log(1 + Amount)",
         xaxis={"gridcolor":"#21262d"}, yaxis={"gridcolor":"#21262d"},
     )
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, width="stretch")
 
     st.markdown("### Sample Transactions")
     n_show = st.slider("Rows to show", 5, 50, 10)
@@ -518,5 +521,5 @@ elif page == "Dataset Explorer":
     st.dataframe(
         display_df[["transaction_id","amount","mcc","country","home_country",
                     "hour","is_card_present","is_anomaly","anomaly_type"]].head(n_show),
-        use_container_width=True, hide_index=True,
+        width="stretch", hide_index=True,
     )

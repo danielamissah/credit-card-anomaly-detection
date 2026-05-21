@@ -17,12 +17,15 @@ import json
 import math
 import pickle
 import time
+import warnings
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
 import torch
 import torch.nn as nn
+
+warnings.filterwarnings("ignore", module="sklearn")
 
 from api.schemas.transaction import (
     TransactionRequest, AnomalyResponse, AnomalyType, ModelScores, RuleTrigger,
